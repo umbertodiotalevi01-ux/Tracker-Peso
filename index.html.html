@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0b">
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUEVTTyIsInNob3J0X25hbWUiOiJQRVNPIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwYTBhMGIiLCJ0aGVtZV9jb2xvciI6IiMwYTBhMGIifQ==">
+<title>PESO</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+--bg:#0a0a0b;--surface:#141416;--accent:#c8ff00;--green:#44ff88;--yellow:#ffcc00;--red:#ff4444;
+--text:#e0e0e0;--text-dim:#666;--radius:10px;
+}
+body{
+font-family:'JetBrains Mono',monospace;background:var(--bg);color:var(--text);
+max-width:480px;margin:0 auto;padding:16px;min-height:100dvh;
+-webkit-font-smoothing:antialiased;user-select:none;
+}
+header{text-align:center;padding:12px 0 16px;position:relative}
+header h1{font-size:28px;font-weight:700;letter-spacing:6px;color:#fff}
+header p{font-size:11px;color:var(--text-dim);letter-spacing:2px;margin-top:2px}
+.settings-btn{
+position:absolute;right:0;top:14px;background:none;border:1px solid #333;
+color:var(--text-dim);width:36px;height:36px;border-radius:8px;font-size:16px;
+cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.settings-btn:active{background:#1a1a1e}
+.tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--surface);border-radius:var(--radius);padding:3px}
+.tab{
+flex:1;padding:8px;text-align:center;border-radius:8px;font-size:12px;font-weight:500;
+cursor:pointer;color:var(--text-dim);transition:all .2s;border:none;background:none;
+font-family:inherit;letter-spacing:1px;
+}
+.tab.active{background:var(--bg);color:#fff}
+nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+nav button{
+background:none;border:1px solid #222;color:var(--text-dim);width:36px;height:36px;
+border-radius:8px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+font-family:inherit;
+}
+nav button:active{background:#1a1a1e}
+nav .nav-label{font-size:13px;font-weight:500;color:#fff;letter-spacing:1px}
+
+/* Week grid */
+.week-grid{
+display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-bottom:14px;
+}
+.day-header{
+font-size:9px;color:var(--text-dim);text-align:center;padding:4px 0;letter-spacing:1px;font-weight:500;
+}
+.day-header.obj-header{color:var(--accent)}
+.day-cell{
+background:var(--surface);border-radius:8px;padding:8px 2px;text-align:center;
+cursor:pointer;min-height:62px;display:flex;flex-direction:column;align-items:center;
+justify-content:center;gap:2px;transition:background .15s;border:1px solid transparent;
+}
+.day-cell:active{background:#1c1c20}
+.day-cell.today{border-color:#333}
+.day-cell.has-value .day-value{color:#fff}
+.day-cell .day-num{font-size:10px;color:var(--text-dim);font-weight:400}
+.day-cell .day-value{font-size:14px;font-weight:600;color:#444;min-height:20px}
+.day-cell .day-value.placeholder{color:#2a2a2e;font-size:18px}
+.day-cell.obj-cell{
+border-color:color-mix(in srgb,var(--accent) 30%,transparent);
+background:color-mix(in srgb,var(--accent) 5%,var(--surface));
+}
+.day-cell.obj-cell .day-value{color:var(--accent)}
+.day-cell.obj-cell:active{background:color-mix(in srgb,var(--accent) 10%,var(--surface))}
+
+/* Stats card */
+.stats-card{
+background:var(--surface);border-radius:var(--radius);padding:14px;margin-bottom:14px;
+}
+.stats-row{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.stat{flex:1;min-width:70px;text-align:center;padding:6px 0}
+.stat-label{font-size:9px;color:var(--text-dim);letter-spacing:1px;margin-bottom:4px;font-weight:500}
+.stat-value{font-size:16px;font-weight:600;color:#fff}
+.stat-value.colored-green{color:var(--green)}
+.stat-value.colored-yellow{color:var(--yellow)}
+.stat-value.colored-red{color:var(--red)}
+.delta-pos{color:var(--red)}
+.delta-neg{color:var(--green)}
+.delta-zero{color:var(--text-dim)}
+
+/* Month grid */
+.month-grid{
+display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:14px;
+}
+.month-header{
+font-size:9px;color:var(--text-dim);text-align:center;padding:4px 0;letter-spacing:1px;font-weight:500;
+}
+.month-cell{
+background:var(--surface);border-radius:6px;padding:4px 2px;text-align:center;
+min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+cursor:pointer;transition:background .15s;border:1px solid transparent;
+}
+.month-cell:active{background:#1c1c20}
+.month-cell.today{border-color:#333}
+.month-cell.empty{background:transparent;cursor:default}
+.month-cell.empty:active{background:transparent}
+.month-cell .m-num{font-size:9px;color:var(--text-dim)}
+.month-cell .m-val{font-size:11px;font-weight:600;color:#fff}
+.month-cell .m-val.placeholder{color:#2a2a2e}
+
+.week-summary{
+background:var(--surface);border-radius:8px;padding:10px 14px;margin-bottom:6px;
+display:flex;justify-content:space-between;align-items:center;cursor:pointer;
+transition:background .15s;
+}
+.week-summary:active{background:#1c1c20}
+.week-summary .ws-label{font-size:11px;color:var(--text-dim);font-weight:500}
+.week-summary .ws-avg{font-size:14px;font-weight:600}
+.week-summary .ws-obj{font-size:11px;font-weight:500}
+.week-summary .ws-arrow{color:var(--text-dim);font-size:14px}
+
+/* Modal */
+.modal-overlay{
+position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:flex-end;
+justify-content:center;z-index:100;
+}
+.modal-overlay.open{display:flex}
+.modal{
+background:var(--surface);border-radius:16px 16px 0 0;padding:24px;width:100%;
+max-width:480px;
+}
+.modal h3{font-size:14px;font-weight:600;margin-bottom:16px;letter-spacing:1px}
+.modal input{
+width:100%;background:var(--bg);border:1px solid #333;border-radius:8px;padding:14px;
+color:#fff;font-family:inherit;font-size:18px;text-align:center;font-weight:600;
+outline:none;
+}
+.modal input:focus{border-color:var(--accent)}
+.modal .modal-actions{display:flex;gap:8px;margin-top:16px}
+.modal .modal-actions button{
+flex:1;padding:12px;border-radius:8px;font-family:inherit;font-size:13px;
+font-weight:600;cursor:pointer;border:none;letter-spacing:1px;
+}
+.btn-cancel{background:var(--bg);color:var(--text-dim)}
+.btn-save{background:var(--accent);color:#000}
+.btn-delete{background:var(--red);color:#fff;flex:0.5 !important}
+
+/* Settings modal */
+.settings-modal .setting-group{margin-bottom:16px}
+.settings-modal label{font-size:11px;color:var(--text-dim);letter-spacing:1px;display:block;margin-bottom:6px;font-weight:500}
+.settings-modal input{font-size:15px;margin-bottom:0}
+.settings-modal .modal-actions{margin-top:20px}
+
+.hint{text-align:center;color:var(--text-dim);font-size:10px;letter-spacing:1px;padding:8px 0 16px}
+</style>
+</head>
+<body>
+
+<header>
+<h1>PESO</h1>
+<p>TRACKER SETTIMANALE</p>
+<button class="settings-btn" onclick="openSettings()">⚙</button>
+</header>
+
+<div class="tabs">
+<button class="tab active" data-view="week" onclick="switchView('week')">Sett</button>
+<button class="tab" data-view="month" onclick="switchView('month')">Mese</button>
+</div>
+
+<nav>
+<button onclick="navigate(-1)">←</button>
+<span class="nav-label" id="navLabel"></span>
+<button onclick="navigate(1)">→</button>
+</nav>
+<div style="text-align:center;margin:-8px 0 10px">
+<button onclick="goToday()" style="background:none;border:none;color:var(--accent);font-family:inherit;font-size:10px;cursor:pointer;letter-spacing:1px;font-weight:500;padding:4px 8px">OGGI</button>
+</div>
+
+<div id="content"></div>
+
+<p class="hint">Tap su un giorno per inserire il peso</p>
+
+<!-- Entry Modal -->
+<div class="modal-overlay" id="entryModal">
+<div class="modal">
+<h3 id="modalTitle">PESO</h3>
+<input type="number" id="modalInput" step="0.1" inputmode="decimal" placeholder="0.0">
+<div class="modal-actions">
+<button class="btn-cancel" onclick="closeModal()">ANNULLA</button>
+<button class="btn-delete" id="modalDelete" onclick="deleteEntry()" style="display:none">✕</button>
+<button class="btn-save" onclick="saveEntry()">SALVA</button>
+</div>
+</div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal">
+<div class="modal settings-modal">
+<h3>IMPOSTAZIONI</h3>
+<div class="setting-group">
+<label>OBIETTIVO KG/SETTIMANA</label>
+<input type="number" id="goalInput" step="0.05" inputmode="decimal" placeholder="0.2">
+</div>
+<div class="setting-group">
+<label>PESO INIZIALE (KG)</label>
+<input type="number" id="startWeightInput" step="0.1" inputmode="decimal" placeholder="78.0">
+</div>
+<div class="modal-actions">
+<button class="btn-cancel" onclick="closeSettings()">ANNULLA</button>
+<button class="btn-save" onclick="saveSettings()">SALVA</button>
+</div>
+</div>
+</div>
+
+<script>
+const STORAGE_KEY = 'peso-tracker';
+const DAYS = ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
+const MONTHS_IT = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+
+let data = loadData();
+let currentView = 'week';
+let viewDate = new Date();
+let editingKey = null;
+let editingType = null; // 'entry' or 'goal'
+
+function loadData() {
+  const defaults = { entries: {}, weekGoals: {}, goalPerWeek: 0.2, startWeight: null };
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return {
+        entries: (parsed.entries && typeof parsed.entries === 'object') ? parsed.entries : {},
+        weekGoals: (parsed.weekGoals && typeof parsed.weekGoals === 'object') ? parsed.weekGoals : {},
+        goalPerWeek: typeof parsed.goalPerWeek === 'number' ? parsed.goalPerWeek : 0.2,
+        startWeight: typeof parsed.startWeight === 'number' ? parsed.startWeight : null
+      };
+    }
+  } catch(e) { console.warn('localStorage non disponibile, uso memoria temporanea'); }
+  return defaults;
+}
+
+function saveData() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
+}
+
+function dateKey(d) {
+  const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+
+function getMonday(d) {
+  const dt = new Date(d);
+  const day = dt.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  dt.setDate(dt.getDate() + diff);
+  dt.setHours(0,0,0,0);
+  return dt;
+}
+
+function weekKey(d) {
+  const mon = getMonday(d);
+  return dateKey(mon);
+}
+
+function isToday(d) {
+  const t = new Date();
+  return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth() && d.getDate() === t.getDate();
+}
+
+function switchView(v) {
+  currentView = v;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === v));
+  render();
+}
+
+function navigate(dir) {
+  if (currentView === 'week') {
+    viewDate.setDate(viewDate.getDate() + dir * 7);
+  } else {
+    viewDate.setMonth(viewDate.getMonth() + dir);
+  }
+  render();
+}
+
+function goToday() {
+  viewDate = new Date();
+  render();
+}
+
+function getWeekEntries(monday) {
+  const entries = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(d.getDate() + i);
+    const k = dateKey(d);
+    entries.push({ date: d, key: k, value: data.entries[k] ?? null });
+  }
+  return entries;
+}
+
+function weekAvg(entries) {
+  const vals = entries.filter(e => e.value !== null).map(e => e.value);
+  if (!vals.length) return null;
+  return vals.reduce((a,b) => a+b, 0) / vals.length;
+}
+
+function colorForAvg(avg, goal) {
+  if (avg === null || goal === null || goal === undefined) return '';
+  const diff = Math.abs(avg - goal);
+  if (diff <= 0.05) return 'colored-green';
+  if (diff <= 0.15) return 'colored-yellow';
+  return 'colored-red';
+}
+
+function renderWeek() {
+  const monday = getMonday(viewDate);
+  const wk = weekKey(viewDate);
+  const entries = getWeekEntries(monday);
+  const goal = data.weekGoals[wk] ?? null;
+
+  // Nav label
+  const sun = new Date(monday);
+  sun.setDate(sun.getDate() + 6);
+  document.getElementById('navLabel').textContent =
+    `${monday.getDate()} ${MONTHS_IT[monday.getMonth()].slice(0,3)} – ${sun.getDate()} ${MONTHS_IT[sun.getMonth()].slice(0,3)}`;
+
+  let html = '<div class="week-grid">';
+  // Headers
+  DAYS.forEach(d => { html += `<div class="day-header">${d}</div>`; });
+  html += '<div class="day-header obj-header">OBJ</div>';
+
+  // Cells
+  entries.forEach(e => {
+    const today = isToday(e.date) ? ' today' : '';
+    const hasVal = e.value !== null ? ' has-value' : '';
+    const val = e.value !== null ? e.value.toFixed(1) : '<span class="placeholder">·</span>';
+    html += `<div class="day-cell${today}${hasVal}" onclick="openEntry('${e.key}','${e.date.getDate()}')">
+      <span class="day-num">${e.date.getDate()}</span>
+      <span class="day-value">${val}</span>
+    </div>`;
+  });
+
+  // OBJ cell
+  const goalVal = goal !== null ? goal.toFixed(1) : '<span class="placeholder">·</span>';
+  html += `<div class="day-cell obj-cell" onclick="openGoal('${wk}')">
+    <span class="day-num">▸</span>
+    <span class="day-value">${goalVal}</span>
+  </div>`;
+  html += '</div>';
+
+  // Stats
+  const avg = weekAvg(entries);
+  const vals = entries.filter(e => e.value !== null).map(e => e.value);
+  const min = vals.length ? Math.min(...vals) : null;
+  const max = vals.length ? Math.max(...vals) : null;
+  const count = vals.length;
+
+  // Delta vs last week
+  const prevMon = new Date(monday);
+  prevMon.setDate(prevMon.getDate() - 7);
+  const prevEntries = getWeekEntries(prevMon);
+  const prevAvg = weekAvg(prevEntries);
+  let deltaHtml = '–';
+  if (avg !== null && prevAvg !== null) {
+    const delta = avg - prevAvg;
+    const sign = delta > 0 ? '+' : '';
+    const cls = delta > 0.01 ? 'delta-pos' : delta < -0.01 ? 'delta-neg' : 'delta-zero';
+    deltaHtml = `<span class="${cls}">${sign}${delta.toFixed(2)}</span>`;
+  }
+
+  const avgColor = colorForAvg(avg, goal);
+
+  html += `<div class="stats-card"><div class="stats-row">
+    <div class="stat"><div class="stat-label">MEDIA</div><div class="stat-value ${avgColor}">${avg !== null ? avg.toFixed(1) : '–'}</div></div>
+    <div class="stat"><div class="stat-label">MIN</div><div class="stat-value">${min !== null ? min.toFixed(1) : '–'}</div></div>
+    <div class="stat"><div class="stat-label">MAX</div><div class="stat-value">${max !== null ? max.toFixed(1) : '–'}</div></div>
+    <div class="stat"><div class="stat-label">DATI</div><div class="stat-value">${count}/7</div></div>
+    <div class="stat"><div class="stat-label">DELTA</div><div class="stat-value">${deltaHtml}</div></div>
+  </div></div>`;
+
+  document.getElementById('content').innerHTML = html;
+}
+
+function renderMonth() {
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  document.getElementById('navLabel').textContent = `${MONTHS_IT[month]} ${year}`;
+
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  let startDow = firstDay.getDay();
+  startDow = startDow === 0 ? 6 : startDow - 1; // Monday = 0
+
+  let html = '<div class="month-grid">';
+  DAYS.forEach(d => { html += `<div class="month-header">${d}</div>`; });
+
+  // Empty cells
+  for (let i = 0; i < startDow; i++) {
+    html += '<div class="month-cell empty"></div>';
+  }
+
+  // Day cells
+  for (let d = 1; d <= lastDay.getDate(); d++) {
+    const dt = new Date(year, month, d);
+    const k = dateKey(dt);
+    const val = data.entries[k];
+    const today = isToday(dt) ? ' today' : '';
+    const valStr = val !== undefined ? val.toFixed(1) : '<span class="placeholder">·</span>';
+    html += `<div class="month-cell${today}" onclick="openEntry('${k}','${d}')">
+      <span class="m-num">${d}</span>
+      <span class="m-val">${valStr}</span>
+    </div>`;
+  }
+  html += '</div>';
+
+  // Week summaries
+  const weeks = getMonthWeeks(year, month);
+  html += '<div style="margin-top:10px">';
+  weeks.forEach(w => {
+    const entries = getWeekEntries(w.monday);
+    const avg = weekAvg(entries);
+    const wk = weekKey(w.monday);
+    const goal = data.weekGoals[wk] ?? null;
+    const avgColor = colorForAvg(avg, goal);
+    const count = entries.filter(e => e.value !== null).length;
+
+    const monDate = w.monday.getDate();
+    const sunDate = new Date(w.monday);
+    sunDate.setDate(sunDate.getDate() + 6);
+
+    const goalStr = goal !== null ? `OBJ ${goal.toFixed(1)}` : '';
+    const goalColor = goal !== null ? `color:var(--accent)` : '';
+
+    html += `<div class="week-summary" onclick="goToWeek(${w.monday.getTime()})">
+      <span class="ws-label">${monDate}–${sunDate.getDate()} ${MONTHS_IT[w.monday.getMonth()].slice(0,3)}</span>
+      <span class="ws-avg ${avgColor}">${avg !== null ? avg.toFixed(1) : '–'} <span style="font-size:10px;color:var(--text-dim)">(${count})</span></span>
+      <span class="ws-obj" style="${goalColor}">${goalStr}</span>
+      <span class="ws-arrow">›</span>
+    </div>`;
+  });
+  html += '</div>';
+
+  document.getElementById('content').innerHTML = html;
+}
+
+function getMonthWeeks(year, month) {
+  const weeks = [];
+  const seen = new Set();
+  for (let d = 1; d <= new Date(year, month + 1, 0).getDate(); d++) {
+    const dt = new Date(year, month, d);
+    const mon = getMonday(dt);
+    const k = mon.getTime();
+    if (!seen.has(k)) {
+      seen.add(k);
+      weeks.push({ monday: mon });
+    }
+  }
+  return weeks;
+}
+
+function goToWeek(ts) {
+  viewDate = new Date(ts);
+  switchView('week');
+}
+
+function render() {
+  if (currentView === 'week') renderWeek();
+  else renderMonth();
+}
+
+// Entry modal
+function openEntry(key, dayNum) {
+  editingKey = key;
+  editingType = 'entry';
+  const existing = data.entries[key];
+  document.getElementById('modalTitle').textContent = `PESO — ${dayNum}`;
+  const input = document.getElementById('modalInput');
+  input.value = existing !== undefined ? existing : '';
+  input.placeholder = '0.0';
+  document.getElementById('modalDelete').style.display = existing !== undefined ? 'block' : 'none';
+  document.getElementById('entryModal').classList.add('open');
+  setTimeout(() => input.focus(), 100);
+}
+
+function openGoal(wk) {
+  editingKey = wk;
+  editingType = 'goal';
+  const existing = data.weekGoals[wk];
+  document.getElementById('modalTitle').textContent = 'OBIETTIVO SETTIMANA';
+  const input = document.getElementById('modalInput');
+  input.value = existing !== undefined && existing !== null ? existing : '';
+  input.placeholder = '0.0';
+  document.getElementById('modalDelete').style.display = existing !== undefined && existing !== null ? 'block' : 'none';
+  document.getElementById('entryModal').classList.add('open');
+  setTimeout(() => input.focus(), 100);
+}
+
+function saveEntry() {
+  const val = parseFloat(document.getElementById('modalInput').value);
+  if (isNaN(val)) { closeModal(); return; }
+  if (editingType === 'entry') {
+    data.entries[editingKey] = val;
+  } else {
+    data.weekGoals[editingKey] = val;
+  }
+  saveData();
+  closeModal();
+  render();
+}
+
+function deleteEntry() {
+  if (editingType === 'entry') {
+    delete data.entries[editingKey];
+  } else {
+    delete data.weekGoals[editingKey];
+  }
+  saveData();
+  closeModal();
+  render();
+}
+
+function closeModal() {
+  document.getElementById('entryModal').classList.remove('open');
+  editingKey = null;
+  editingType = null;
+}
+
+// Settings
+function openSettings() {
+  document.getElementById('goalInput').value = data.goalPerWeek || '';
+  document.getElementById('startWeightInput').value = data.startWeight || '';
+  document.getElementById('settingsModal').classList.add('open');
+}
+
+function closeSettings() {
+  document.getElementById('settingsModal').classList.remove('open');
+}
+
+function saveSettings() {
+  const g = parseFloat(document.getElementById('goalInput').value);
+  const s = parseFloat(document.getElementById('startWeightInput').value);
+  if (!isNaN(g)) data.goalPerWeek = g;
+  if (!isNaN(s)) data.startWeight = s;
+  saveData();
+  closeSettings();
+  render();
+}
+
+// Close modals on overlay tap
+document.getElementById('entryModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+document.getElementById('settingsModal').addEventListener('click', function(e) {
+  if (e.target === this) closeSettings();
+});
+
+// Init
+render();
+</script>
+</body>
+</html>
